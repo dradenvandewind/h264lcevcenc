@@ -1,8 +1,9 @@
-/* GStreamer H264 encoder plugin
+/* fork GStreamer x264 to H264LCEVC encoder plugin
  * Copyright (C) 2005 Michal Benes <michal.benes@itonis.tv>
  * Copyright (C) 2005 Josef Zlomek <josef.zlomek@itonis.tv>
  * Copyright (C) 2008 Mark Nauwelaerts <mnauw@users.sf.net>
  * Copyright (C) 2016 Sebastian Dröge <sebastian@centricular.com>
+ * Copyright (C) 2025 Erwan Le Blond <erwanleblond@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
