@@ -3279,8 +3279,15 @@ plugin_init (GstPlugin * plugin)
   return GST_ELEMENT_REGISTER (x264enc, plugin);
 }
 
-GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
+// This should be "h264lcevc" not "x264"
+GST_PLUGIN_DEFINE(
+    GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
-    x264,
-    "libx264-based H.264 encoder plugin",
-    plugin_init, VERSION, "GPL", GST_PACKAGE_NAME, GST_PACKAGE_ORIGIN)
+    h264lcevc,  // <- This should match your plugin name
+    "H.264 LCEVC encoder",
+    plugin_init,
+    VERSION,
+    "LGPL",
+    GST_PACKAGE_NAME,
+    GST_PACKAGE_ORIGIN
+);
