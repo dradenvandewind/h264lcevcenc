@@ -267,12 +267,15 @@ gst_dual_encoder_set_format(GstVideoEncoder *vencoder, GstVideoCodecState *state
         gst_dual_encoder_cleanup(encoder);
         return FALSE;
     }
+
+    outcaps = gst_caps_new_simple("video/x-h264",
+                                    "lcevc", G_TYPE_BOOLEAN, TRUE,
+                                    "stream-format", G_TYPE_STRING, "byte-stream",
+                                    "alignment", G_TYPE_STRING, "au",
+                                    NULL);
+
+
     
-    /* Set output caps */
-    outcaps = gst_caps_new_simple("application/x-dual-stream",
-                                 "baseline", G_TYPE_STRING, "video/x-h264",
-                                 "enhancement", G_TYPE_STRING, "video/x-lcevc",
-                                 NULL);
     
     output_state = gst_video_encoder_set_output_state(vencoder, outcaps, state);
     gst_video_codec_state_unref(output_state);
