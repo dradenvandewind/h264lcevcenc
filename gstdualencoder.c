@@ -34,6 +34,8 @@ struct _GstDualEncoder {
     gint enhancement_width;
     gint enhancement_height;
     gint enhancement_bitrate;
+    gint fps_n;
+    gint fps_d;
     
     /* x264 encoder context for baseline */
     x264_t *x264_encoder;
@@ -105,8 +107,8 @@ gst_dual_encoder_init_x264(GstDualEncoder *encoder)
     
     encoder->x264_params.i_width = encoder->baseline_width;
     encoder->x264_params.i_height = encoder->baseline_height;
-    encoder->x264_params.i_fps_num = 30;
-    encoder->x264_params.i_fps_den = 1;
+    encoder->x264_params.i_fps_num = encoder->fps_n;    
+    encoder->x264_params.i_fps_den = encoder->fps_d;
     encoder->x264_params.rc.i_bitrate = encoder->baseline_bitrate;
     encoder->x264_params.rc.i_rc_method = X264_RC_ABR;
     
@@ -249,22 +251,59 @@ gst_dual_encoder_cleanup(GstDualEncoder *encoder)
 static gboolean
 gst_dual_encoder_set_format(GstVideoEncoder *vencoder, GstVideoCodecState *state)
 {
-    GstDualEncoder *encoder = GST_DUAL_ENCODER(vencoder);
+    GstDualEncoder *self = GST_DUAL_ENCODER(vencoder);
     GstCaps *outcaps;
     GstVideoCodecState *output_state;
+    GstVideoInfo *info = &state->info;
+
+    GST_INFO_OBJECT(self, "set_format called");
+
+    if (!self->x264_encoder || !self->xeve_handle) {
+        GST_ERROR_OBJECT(self, " encoders structure not initialized");
+        return FALSE;
+    }
+
+  gint width = GST_VIDEO_INFO_WIDTH(info);
+  gint height = GST_VIDEO_INFO_HEIGHT(info);
+  gint fps_n = GST_VIDEO_INFO_FPS_N(info);
+  gint fps_d = GST_VIDEO_INFO_FPS_D(info);
+
+  GST_INFO_OBJECT(self, "Extracted from caps: %dx%d @ %d/%d fps", width, height,
+                  fps_n, fps_d);
+
+  // Check that the dimensions are valid
+  if (width <= 0 || height <= 0) {
+    GST_ERROR_OBJECT(self, "Invalid dimensions extracted: %dx%d", width,
+                     height);
+    return FALSE;
+  }
+
+  self->baseline_width = width;
+  self->baseline_height = height;
+  self->enhancement_width = width>>1;  // Example: enhancement is half resolution
+  self->enhancement_height = height>>1;
+  self->fps_n = fps_n;
+  self->fps_d = fps_d;
+
+
+
+
+
+
+
     
     /* Cleanup existing encoders */
-    gst_dual_encoder_cleanup(encoder);
+    gst_dual_encoder_cleanup(self);
     
-    encoder->input_info = state->info;
+    self->input_info = state->info;
     
     /* Initialize both encoders */
-    if (!gst_dual_encoder_init_x264(encoder)) {
+    if (!gst_dual_encoder_init_x264(self)) {
         return FALSE;
     }
     
-    if (!gst_dual_encoder_init_xeve(encoder)) {
-        gst_dual_encoder_cleanup(encoder);
+    if (!gst_dual_encoder_init_xeve(self)) {
+        gst_dual_encoder_cleanup(self);
         return FALSE;
     }
 
@@ -280,7 +319,7 @@ gst_dual_encoder_set_format(GstVideoEncoder *vencoder, GstVideoCodecState *state
     output_state = gst_video_encoder_set_output_state(vencoder, outcaps, state);
     gst_video_codec_state_unref(output_state);
     
-    encoder->configured = TRUE;
+    self->configured = TRUE;
     
     return TRUE;
 }
