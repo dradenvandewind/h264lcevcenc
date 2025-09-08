@@ -34,6 +34,7 @@ struct _GstDualEncoder {
     gint enhancement_width;
     gint enhancement_height;
     gint enhancement_bitrate;
+    gint gop_size;
     gint fps_n;
     gint fps_d;
     
@@ -68,7 +69,8 @@ enum {
     PROP_BASELINE_BITRATE,
     PROP_ENHANCEMENT_WIDTH,
     PROP_ENHANCEMENT_HEIGHT,
-    PROP_ENHANCEMENT_BITRATE
+    PROP_ENHANCEMENT_BITRATE,
+    PROP_GOP_SIZE
 };
 
 /* Pad templates */
@@ -114,7 +116,7 @@ gst_dual_encoder_init_x264(GstDualEncoder *encoder)
     
     /* Force baseline profile */
     encoder->x264_params.i_level_idc = 30;
-    encoder->x264_params.i_keyint_max = 30;
+    encoder->x264_params.i_keyint_max = encoder->gop_size;
     encoder->x264_params.b_annexb = 1;
     
     /* Open encoder */
@@ -469,6 +471,9 @@ gst_dual_encoder_set_property(GObject *object, guint prop_id,
         case PROP_ENHANCEMENT_BITRATE:
             encoder->enhancement_bitrate = g_value_get_int(value);
             break;
+        case PROP_GOP_SIZE:
+            encoder->gop_size = g_value_get_int(value);
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
             break;
@@ -499,6 +504,9 @@ gst_dual_encoder_get_property(GObject *object, guint prop_id,
             break;
         case PROP_ENHANCEMENT_BITRATE:
             g_value_set_int(value, encoder->enhancement_bitrate);
+            break;
+        case PROP_GOP_SIZE:
+            g_value_set_int(value, encoder->gop_size);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -549,6 +557,11 @@ gst_dual_encoder_class_init(GstDualEncoderClass *klass)
                          "Bitrate for LCEVC enhancement stream (kbps)", 1, G_MAXINT, 200,
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     
+    g_object_class_install_property(gobject_class, PROP_GOP_SIZE,
+        g_param_spec_int("gop-size", "GOP Size",
+                         "Maximum GOP size (keyframe interval)", 1, G_MAXINT, 60,
+                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
     /* Set element details */
     gst_element_class_set_static_metadata(element_class,
         "Dual H.264/LCEVC Encoder",
@@ -578,6 +591,11 @@ gst_dual_encoder_init(GstDualEncoder *encoder)
     encoder->x264_encoder = NULL;
     encoder->xeve_handle = NULL;
     encoder->imgb_rec = NULL;
+    encoder->bs_buf = NULL;
+    encoder->gop_size = 60;
+    encoder->fps_n = 30;
+    encoder->fps_d = 1;
+
 }
 
 /* Plugin initialization */
