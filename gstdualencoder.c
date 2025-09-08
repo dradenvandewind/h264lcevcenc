@@ -85,10 +85,12 @@ static GstStaticPadTemplate src_template = GST_STATIC_PAD_TEMPLATE(
     "src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS("application/x-dual-stream, "
-                    "baseline=(string)video/x-h264, "
-                    "enhancement=(string)video/x-lcevc")
+    GST_STATIC_CAPS("video/x-h264, "
+                    "lcevc = (boolean) true, "
+                    "stream-format = (string) byte-stream, "
+                    "alignment = (string) au ")
 );
+
 
 GType gst_dual_encoder_get_type(void);
 
