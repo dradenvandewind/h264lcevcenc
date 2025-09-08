@@ -1,8 +1,1 @@
-option('gpl', type : 'combo', choices : ['auto', 'enabled', 'disabled'], value : 'auto',
-       description : 'Allow GPL-licensed plugins to be built')
-
-option('x264', type : 'combo', choices : ['auto', 'enabled', 'disabled'], value : 'auto',
-       description : 'Enable x264 encoder support')
-
-option('x264_libraries', type : 'string', value : '',
-       description : 'Additional x264 libraries to link against')
+option('gst_plugin_dir', type: 'string', value: '', description: 'GStreamer plugin installation directory (auto-detected if empty)')
